@@ -146,11 +146,13 @@ class _CardFlipperState extends State<CardFlipper>
   Widget _buildCard(
       CardModel model, int cardIndex, int cardCount, double scrollPercent) {
     final cardScrollPercent = scrollPercent / (1 / cardCount);
+    final parallax = scrollPercent - (cardIndex / cardCount);
+
     return FractionalTranslation(
         translation: new Offset(cardIndex - cardScrollPercent, 0.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: new Card(model),
+          child: new Card(model, parallaxPercent: parallax),
         ));
   }
 
@@ -169,9 +171,10 @@ class _CardFlipperState extends State<CardFlipper>
 }
 
 class Card extends StatelessWidget {
-  CardModel model;
+  final CardModel model;
+  final double parallaxPercent;
 
-  Card(this.model);
+  Card(this.model, {this.parallaxPercent: 0.0});
 
   @override
   Widget build(BuildContext context) {
@@ -180,9 +183,15 @@ class Card extends StatelessWidget {
       children: <Widget>[
         new ClipRRect(
           borderRadius: new BorderRadius.circular(10.0),
-          child: new Image.asset(
-            model.backdropAssetPath,
-            fit: BoxFit.cover,
+          child: FractionalTranslation(
+            translation: new Offset(parallaxPercent * 1, 0.0),
+            child: OverflowBox(
+              maxWidth: double.infinity,
+              child: new Image.asset(
+                model.backdropAssetPath,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
         ),
 
