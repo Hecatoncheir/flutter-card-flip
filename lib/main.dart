@@ -28,6 +28,8 @@ class CardFlipPage extends StatefulWidget {
 }
 
 class _CardFlipState extends State<CardFlipPage> {
+  double scrollPercent = 0.0;
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -43,15 +45,17 @@ class _CardFlipState extends State<CardFlipPage> {
 
           // Cards
           new Expanded(
-            child: new CardFlipper(demoCards),
-          ),
+              child: new CardFlipper(
+                  cards: demoCards,
+                  onScroll: (double scrollPercent) {
+                    setState(() {
+                      this.scrollPercent = scrollPercent;
+                    });
+                  })),
 
           // Bottom bar
-          new Container(
-            width: double.infinity,
-            height: 50.0,
-            color: Colors.grey,
-          )
+          new BottomBar(
+              scrollPercent: this.scrollPercent, cardCount: demoCards.length)
         ],
       ),
     );
@@ -60,7 +64,10 @@ class _CardFlipState extends State<CardFlipPage> {
 
 class CardFlipper extends StatefulWidget {
   final List<CardModel> cards;
-  CardFlipper(this.cards);
+
+  final Function(double scrollPercent) onScroll;
+
+  CardFlipper({this.cards, this.onScroll});
 
   @override
   _CardFlipperState createState() => _CardFlipperState();
@@ -84,6 +91,10 @@ class _CardFlipperState extends State<CardFlipper>
         setState(() {
           scrollPercent = ui.lerpDouble(
               finishScrollStart, finishScrollEnd, finishScrollController.value);
+
+          if (widget.onScroll != null) {
+            widget.onScroll(scrollPercent);
+          }
         });
       });
   }
@@ -110,6 +121,10 @@ class _CardFlipperState extends State<CardFlipper>
           (startDragPercentScroll + (-singleCardDragPercent / numCards))
               .clamp(0.0, 1.0 - (1 / numCards));
     });
+
+    if (widget.onScroll != null) {
+      widget.onScroll(scrollPercent);
+    }
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) {
@@ -255,7 +270,8 @@ class Card extends StatelessWidget {
             child: new Container(
               decoration: new BoxDecoration(
                   borderRadius: new BorderRadius.circular(30.0),
-                  border: new Border.all(color: Colors.white.withOpacity(0.5), width: 1.0),
+                  border: new Border.all(
+                      color: Colors.white.withOpacity(0.5), width: 1.0),
                   color: Colors.black.withOpacity(0.3)),
               child: Padding(
                 padding:
@@ -290,5 +306,104 @@ class Card extends StatelessWidget {
         ])
       ],
     );
+  }
+}
+
+class BottomBar extends StatelessWidget {
+  final int cardCount;
+  final double scrollPercent;
+
+  BottomBar({this.cardCount, this.scrollPercent});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+      child: new Row(
+        children: <Widget>[
+          new Expanded(
+              child: new Center(
+            child: new Icon(
+              Icons.settings_backup_restore,
+              color: Colors.white,
+            ),
+          )),
+          new Expanded(
+              child: new Container(
+            width: double.infinity,
+            height: 5.0,
+            child: new ScrollIndicator(
+                cardCount: cardCount, scrollPercent: scrollPercent),
+          )),
+          new Expanded(
+              child: new Center(
+            child: new Icon(
+              Icons.add_a_photo,
+              color: Colors.white,
+            ),
+          ))
+        ],
+      ),
+    );
+  }
+}
+
+class ScrollIndicator extends StatelessWidget {
+  final int cardCount;
+  final double scrollPercent;
+
+  ScrollIndicator({this.cardCount, this.scrollPercent});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+        painter: new ScrollIndicatorPainter(
+            cardCount: cardCount, scrollPercent: scrollPercent),
+        child: new Container());
+  }
+}
+
+class ScrollIndicatorPainter extends CustomPainter {
+  final int cardCount;
+  final double scrollPercent;
+
+  final Paint trackPaint;
+  final Paint thumbPaint;
+
+  ScrollIndicatorPainter({this.cardCount, this.scrollPercent})
+      : trackPaint = new Paint()
+          ..color = const Color.fromRGBO(115, 126, 142, 0.5)
+          ..style = PaintingStyle.fill,
+        thumbPaint = new Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+
+  @override
+  void paint(ui.Canvas canvas, ui.Size size) {
+    canvas.drawRRect(
+        RRect.fromRectAndCorners(
+            new Rect.fromLTWH(0.0, 0.0, size.width, size.height),
+            topLeft: new Radius.circular(3.0),
+            topRight: new Radius.circular(3.0),
+            bottomLeft: new Radius.circular(3.0),
+            bottomRight: new Radius.circular(3.0)),
+        trackPaint);
+
+    final thumbWidth = size.width / cardCount;
+    final thumbLeft = scrollPercent * size.width;
+
+    canvas.drawRRect(
+        RRect.fromRectAndCorners(
+            new Rect.fromLTWH(thumbLeft, 0.0, thumbWidth, size.height),
+            topLeft: new Radius.circular(3.0),
+            topRight: new Radius.circular(3.0),
+            bottomLeft: new Radius.circular(3.0),
+            bottomRight: new Radius.circular(3.0)),
+        thumbPaint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
   }
 }
