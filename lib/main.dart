@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/painting.dart';
 
 import 'card_data.dart';
 
@@ -184,13 +185,11 @@ class Card extends StatelessWidget {
         new ClipRRect(
           borderRadius: new BorderRadius.circular(10.0),
           child: FractionalTranslation(
-            translation: new Offset(parallaxPercent * 1, 0.0),
+            translation: new Offset(parallaxPercent, 0.0),
             child: OverflowBox(
               maxWidth: double.infinity,
-              child: new Image.asset(
-                model.backdropAssetPath,
-                fit: BoxFit.cover,
-              ),
+              child:
+                  new Image.asset(model.backdropAssetPath, fit: BoxFit.cover),
             ),
           ),
         ),
@@ -256,7 +255,7 @@ class Card extends StatelessWidget {
             child: new Container(
               decoration: new BoxDecoration(
                   borderRadius: new BorderRadius.circular(30.0),
-                  border: new Border.all(color: Colors.white, width: 1.5),
+                  border: new Border.all(color: Colors.white.withOpacity(0.5), width: 1.0),
                   color: Colors.black.withOpacity(0.3)),
               child: Padding(
                 padding:
