@@ -180,7 +180,7 @@ class _CardFlipperState extends State<CardFlipper>
     //  [0.0, 0.0, 0.0, 1.0]]
     final perspective = 0.002;
     final radius = 1.0;
-    final angle = scrollPercent * pi / 23;
+    final angle = scrollPercent * pi / 8;
     final horizontalTranslation = 0.0;
     Matrix4 projection = new Matrix4.identity()
       ..setEntry(0, 0, 1 / radius)
